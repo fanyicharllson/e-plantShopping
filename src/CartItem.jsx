@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeItem, increaseQuantity, decreaseQuantity } from './CartSlice';
+import { removeItem, updateQuantity } from './CartSlice';
 
 function CartItem({ onContinue, onHome }) {
-  const dispatch = useDispatch();
+  const dispatch   = useDispatch();
   const items      = useSelector(state => state.cart.items);
   const totalQty   = useSelector(state => state.cart.totalQuantity);
   const totalCost  = useSelector(state => state.cart.totalCost);
@@ -42,35 +42,46 @@ function CartItem({ onContinue, onHome }) {
           <>
             {items.map(item => (
               <div key={item.id} className="cart-item-row">
+
                 {/* Thumbnail */}
                 <img src={item.image} alt={item.name} />
 
-                {/* Info */}
+                {/* Name & unit price */}
                 <div className="cart-item-info">
                   <h4>{item.name}</h4>
                   <p>Unit price: ${item.price.toFixed(2)}</p>
                 </div>
 
-                {/* Quantity controls */}
+                {/* Quantity controls using updateQuantity */}
                 <div className="cart-item-controls">
-                  <button className="qty-btn" onClick={() => dispatch(decreaseQuantity(item.id))}>−</button>
+                  <button
+                    className="qty-btn"
+                    onClick={() => dispatch(updateQuantity({ id: item.id, type: 'decrement' }))}
+                  >−</button>
                   <span className="qty-num">{item.quantity}</span>
-                  <button className="qty-btn" onClick={() => dispatch(increaseQuantity(item.id))}>+</button>
+                  <button
+                    className="qty-btn"
+                    onClick={() => dispatch(updateQuantity({ id: item.id, type: 'increment' }))}
+                  >+</button>
                 </div>
 
-                {/* Total for this item */}
+                {/* Total cost for this item */}
                 <div className="item-total">
                   ${(item.price * item.quantity).toFixed(2)}
                 </div>
 
                 {/* Delete button */}
-                <button className="delete-btn" onClick={() => dispatch(removeItem(item.id))}>
+                <button
+                  className="delete-btn"
+                  onClick={() => dispatch(removeItem(item.id))}
+                >
                   🗑 Delete
                 </button>
+
               </div>
             ))}
 
-            {/* Summary */}
+            {/* Cart Summary */}
             <div className="cart-summary">
               <div className="cart-total-text">
                 Total Cost: <span style={{ color: '#40916c' }}>${totalCost.toFixed(2)}</span>
@@ -79,16 +90,13 @@ function CartItem({ onContinue, onHome }) {
                 <button className="continue-btn" onClick={onContinue}>
                   ← Continue Shopping
                 </button>
-                <button
-                  className="checkout-btn"
-                  onClick={() => setCheckedOut(true)}
-                >
+                <button className="checkout-btn" onClick={() => setCheckedOut(true)}>
                   Checkout
                 </button>
               </div>
             </div>
 
-            {/* Coming Soon message */}
+            {/* Coming Soon message after checkout click */}
             {checkedOut && (
               <div style={{
                 marginTop: '24px',

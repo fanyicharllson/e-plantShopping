@@ -3,11 +3,13 @@ import { createSlice } from '@reduxjs/toolkit';
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
-    items: [],         // Array of { id, name, price, image, quantity }
+    items: [],
     totalQuantity: 0,
     totalCost: 0,
   },
   reducers: {
+
+    // 1. addItem — adds a new plant to cart (or increments if already exists)
     addItem(state, action) {
       const plant = action.payload;
       const existing = state.items.find(item => item.id === plant.id);
@@ -20,6 +22,7 @@ const cartSlice = createSlice({
       state.totalCost = parseFloat((state.totalCost + plant.price).toFixed(2));
     },
 
+    // 2. removeItem — removes a plant from the cart entirely
     removeItem(state, action) {
       const id = action.payload;
       const existing = state.items.find(item => item.id === id);
@@ -32,32 +35,32 @@ const cartSlice = createSlice({
       }
     },
 
-    increaseQuantity(state, action) {
-      const id = action.payload;
+    // 3. updateQuantity — increases or decreases quantity of a cart item
+    updateQuantity(state, action) {
+      const { id, type } = action.payload; // type: 'increment' | 'decrement'
       const existing = state.items.find(item => item.id === id);
-      if (existing) {
+      if (!existing) return;
+
+      if (type === 'increment') {
         existing.quantity += 1;
         state.totalQuantity += 1;
         state.totalCost = parseFloat((state.totalCost + existing.price).toFixed(2));
+      } else if (type === 'decrement') {
+        if (existing.quantity > 1) {
+          existing.quantity -= 1;
+          state.totalQuantity -= 1;
+          state.totalCost = parseFloat((state.totalCost - existing.price).toFixed(2));
+        } else {
+          // Remove item when quantity hits 0
+          state.totalQuantity -= 1;
+          state.totalCost = parseFloat((state.totalCost - existing.price).toFixed(2));
+          state.items = state.items.filter(item => item.id !== id);
+        }
       }
     },
 
-    decreaseQuantity(state, action) {
-      const id = action.payload;
-      const existing = state.items.find(item => item.id === id);
-      if (existing && existing.quantity > 1) {
-        existing.quantity -= 1;
-        state.totalQuantity -= 1;
-        state.totalCost = parseFloat((state.totalCost - existing.price).toFixed(2));
-      } else if (existing && existing.quantity === 1) {
-        // Remove item when quantity reaches 0
-        state.totalQuantity -= 1;
-        state.totalCost = parseFloat((state.totalCost - existing.price).toFixed(2));
-        state.items = state.items.filter(item => item.id !== id);
-      }
-    },
   },
 });
 
-export const { addItem, removeItem, increaseQuantity, decreaseQuantity } = cartSlice.actions;
+export const { addItem, removeItem, updateQuantity } = cartSlice.actions;
 export default cartSlice.reducer;
